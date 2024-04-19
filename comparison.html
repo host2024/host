@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <title>숫자 비교</title>
+    </head>
+    <body>
+        <h1>두 숫자 비교하기</h1>
+        <input type="number" id="num1" placeholder="첫 번째" />
+        <input type="number" id="num2" placeholder="두 번째" />
+        <button onclick="compareNumbers()">숫자 비교</button>
+        <p id="result"></p>
+
+        <script>
+            function compareNumbers() {
+                var num1 = document.getElementById('num1').value;
+                var num2 = document.getElementById('num2').value;
+
+                num1 = parseFloat(num1);
+                num2 = parseFloat(num2);
+
+                if (num1 > num2) {
+                    document.getElementById('result').innerText = num1 + '이(가) ' + num2 + '보다 크다.';
+                } else if (num1 < num2) {
+                    document.getElementById('result').innerText = num1 + '이(가) ' + num2 + '보다 작다.';
+                } else {
+                    document.getElementById('result').innerText = '두 숫자는 같다.';
+                }
+            }
+        </script>
+    </body>
+</html>
