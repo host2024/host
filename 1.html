@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Top Rated Movies</title>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }
+            .top-mainimage {
+                display: grid;
+                grid-template-columns: 1.5fr 2fr 1.5fr;
+                grid-gap: 20px;
+                padding: 20px;
+                background-color: #f0f0f0; /* 배경색 추가 */
+                border: 1px solid #ccc; /* 테두리 추가 */
+                padding: 15px; /* 패딩 추가 */
+                border-radius: 8px; /* 모서리 둥글게 처리 */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 추가 */
+                margin-top: 0px; /* 상단 마진 추가 (위치 조정을 위해) */
+                margin-bottom: 20px; /* 하단 마진 추가 */
+                position: relative; /* 상대 위치 설정 */
+            }
+            .top-image {
+                display: flex;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .left-image,
+            .right-image {
+                flex: 1;
+            }
+
+            .center-image {
+                flex: 2;
+                justify-content: center;
+            }
+            .left-image {
+                justify-content: flex-start; /* 왼쪽 이미지를 왼쪽 끝으로 밀어줌 */
+            }
+            .center-image {
+                justify-content: center; /* 중앙 이미지를 중앙에 위치 */
+            }
+
+            .right-image {
+                justify-content: flex-end; /* 우측 이미지를 우쪽 끝으로 밀어줌 */
+            }
+            .top-image img {
+                width: 20%;
+                height: auto;
+            }
+            .search-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 20px 0;
+                width: 100%;
+                text-align: center;
+            }
+            #searchBox {
+                width: 300px;
+                padding: 10px;
+                margin-right: 10px;
+            }
+            .grid-mainimage {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                grid-gap: 40px;
+                width: 100%;
+                max-width: 1200px;
+                margin-bottom: 30px;
+            }
+            .grid-image {
+                background-color: #f0f0f0;
+                border: 1px solid #ccc;
+                padding: 8px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                position: relative;
+                cursor: pointer;
+                overflow: hidden;
+                transition: transform 0.2s;
+            }
+            .grid-image img {
+                width: 100%;
+                transition: transform 0.3s ease-in-out;
+            }
+            .grid-image:hover img {
+                transform: scale(1.1);
+            }
+            #genreSelect {
+                margin-right: 20px;
+            }
+
+            .movie-title,
+            .movie-overview {
+                text-align: center;
+                margin-top: 10%;
+                transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+                max-height: 0;
+                overflow: auto;
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+            }
+
+            .grid-image:hover .movie-title,
+            .grid-image:hover .movie-overview {
+                max-height: 300px;
+                opacity: 1;
+            }
+
+            body.dark-mode {
+                background-color: #333;
+                color: #fff;
+            }
+
+            .modal.dark-mode {
+                background-color: #444;
+            }
+
+            .modal-content.dark-mode {
+                background-color: #555;
+            }
+
+            .grid-image.dark-mode {
+                background-color: #222;
+                border-color: #777;
+            }
+
+            #toggleDarkMode {
+                margin-right: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="top-mainimage">
+            <div class="top-image left-image">
+                <img src="https://ifh.cc/g/6fS8wY.png" alt="메인 이미지 1" />
+            </div>
+            <div class="top-image center-image">
+                <img src="https://ifh.cc/g/X0od56.png" alt="메인 이미지 2" />
+            </div>
+            <div class="top-image right-image">
+                <img src="https://ifh.cc/g/S6YQlk.png" alt="메인 이미지 3" />
+            </div>
+        </div>
+
+        <div class="search-container">
+            <button id="toggleDarkMode">다크 모드 전환</button>
+            <input type="text" id="searchBox" placeholder="영화 검색" />
+            <select id="genreSelect">
+                <option value="all">모든 장르</option>
+                <option value="드라마">드라마</option>
+                <option value="액션">액션</option>
+                <option value="코미디">코미디</option>
+                <option value="판타지">판타지</option>
+                <option value="뮤지컬">뮤지컬</option>
+            </select>
+            <button onclick="searchMovies()">검색</button>
+        </div>
+
+        <div class="grid-mainimage" id="movieGrid"></div>
+
+        <script>
+            const movies = [
+                {
+                    poster_path: '/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg',
+                    title: '쇼생크 탈출',
+                    overview:
+                        '대형 은행의 부지점장으로 남부러울 것 없이 살던 앤디 듀프레인(Andy Dufresne)이라는 주인공이 아내와 그녀의 정부를 살해했다는 누명을 뒤집어쓰고 메인 주 주립 교도소 쇼생크(Shawshank)[48]에 갇히면서 이야기가 시작된다.',
+                    genre: ['드라마'],
+                    id: 278,
+                },
+                {
+                    poster_path: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+                    title: '대부',
+                    overview:
+                        '제2차 세계 대전이 끝나고 코니 콜레오네가 결혼식을 한 1945년부터 비토 콜레오네의 뒤를 이은 마이클 콜레오네가 뉴욕을 제패하는 1955년까지의 이야기로 구성되었다.',
+                    genre: ['액션'],
+                    id: 238,
+                },
+                {
+                    poster_path: '/hek3koDUyRQk7FIhPXsa6mT2Zc3.jpg',
+                    title: '대부 2',
+                    overview:
+                        '비토 코를레오네는 1892년 이탈리아 시칠리아 코를레오네 마을에서 출생하였으며 본명은 비토 안돌리니이다. 1901년 아버지가 지역 마피아와의 분쟁으로 피살되고 이어서 형과 어머니마저 살해되자 비토는 친척들의 도움으로 시칠리아를 탈출하여 미국 뉴욕으로 건너간다.',
+                    genre: ['액션'],
+                    id: 240,
+                },
+                {
+                    poster_path: '/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg',
+                    title: '쉰들러 리스트',
+                    overview:
+                        '사업가 오스카 쉰들러가 제2차 세계대전 당시 나치로부터 수천 명의 유대인 생명을 구한 실화입니다.',
+                    genre: ['드라마'],
+                    id: 424,
+                },
+                {
+                    poster_path: '/ow3wq89wM8qd5X7hWKxiRfsFf9C.jpg',
+                    title: '12인의 성난 사람들',
+                    overview:
+                        '무더운 여름날, 뉴욕시의 법정에 아버지를 칼로 찌른 한 소년의 살인 혐의를 두고 12인의 배심원들은 만장일치 합의를 통해 소년의 유무죄 여부를 가려줄 것을 요구받는다. 판사는 유죄일 경우 이 소년은 사형이 불가피하다는 것을 이들에게 미리 일러둔다.',
+                    genre: ['드라마'],
+                    id: 389,
+                },
+                {
+                    poster_path: '/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
+                    title: '센과 치히로의 행방불명',
+                    overview: '어린 소녀 치히로는 이상한 새로운 영혼의 세계에 갇히게 됩니다..',
+                    genre: ['판타지', '드라마'],
+                    id: 129,
+                },
+                {
+                    poster_path: '/lfRkUr7DYdHldAqi3PwdQGBRBPM.jpg',
+                    title: '용감한 자가 신부를 데려가리',
+                    overview:
+                        '	영국에서 유학중인 라즈와 인도 처녀 심란. 심란은 부모님이 정해주신 약혼자가 있는데 약혼을 앞두고 친구들과 유럽 여행을 떠나게 된다.',
+                    genre: ['뮤지컬', '코미디'],
+                    id: 19404,
+                },
+                {
+                    poster_path: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+                    title: '다크나이트',
+                    overview: '배트맨은 범죄와의 전쟁에서 위험을 높입니다.',
+                    genre: ['액션'],
+                    id: 155,
+                },
+                {
+                    poster_path: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
+                    title: '기생충',
+                    overview: '모두 백수인 기택네 가족은 부유한 공원에 남다른 관심을 갖는다.',
+                    genre: ['드라마'],
+                    id: 496243,
+                },
+                {
+                    poster_path: '/8VG8fDNiy50H4FedGwdSVUPoaJe.jpg',
+                    title: '그린 마일',
+                    overview: '남부 교도소의 사형수를 ​​배경으로 한 초자연적 이야기.',
+                    genre: ['드라마'],
+                    id: 497,
+                },
+                {
+                    poster_path: '/q719jXXEzOoYaps6babgKnONONX.jpg',
+                    title: '너의 이름은.',
+                    overview: '고등학생 미츠하와 타키는 서로 다른 삶을 살고 있는 전혀 낯선 사람들이다.',
+                    genre: ['드라마', '판타지'],
+                    id: 372058,
+                },
+                {
+                    poster_path: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
+                    title: '펄프 픽션',
+                    overview: '햄버거를 좋아하는 히트맨과 그의 철학적 파트너, 그리고 물에 빠진 복서.',
+                    genre: ['드라마'],
+                    id: 680,
+                },
+                {
+                    poster_path: '/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg',
+                    title: '반지의 제왕: 왕의 귀환',
+                    overview:
+                        '호빗 스메아골과 디골은 강에서 낚시를 즐기다 우연히 강 밑에서 절대반지를 줍는다. 스메아골은 반지를 본 순간 현혹되어 반지를 갖기 위해 디골을 목졸라 죽인다. 하지만 디골을 죽인 죄 때문에 마을 사람들로부터 추방된 스메아골은 안개산맥의 동굴 속으로 숨어들었고, 그곳에서 절대반지는 스메아골의 육체와 정신을 서서히 망가뜨렸다. 긴 세월이 흘러 스메아골은 결국 골룸이 되고 말았다.',
+                    genre: ['드라마', '판타지'],
+                    id: 122,
+                },
+                {
+                    poster_path: '/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg',
+                    title: '포레스트 검프',
+                    overview: 'IQ가 낮은 남자는 인생에서 위대한 일을 성취했습니다.',
+                    genre: ['판타지'],
+                    id: 13,
+                },
+                {
+                    poster_path: '/bX2xnavhMYjWDoZp1VM6VnU1xwe.jpg',
+                    title: '석양의 무법자',
+                    overview: '세 남자가 훔친 금 20만 달러가 들어 있는 금고를 찾고 있습니다.',
+                    genre: ['액션'],
+                    id: 429,
+                },
+                {
+                    poster_path: '/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg',
+                    title: '좋은 친구들',
+                    overview: '헨리 힐과 그의 친구들은 마피아 계층을 통해 올라갑니다.',
+                    genre: ['판타지'],
+                    id: 769,
+                },
+                {
+                    poster_path: '/k9tv1rXZbOhH7eiCk378x61kNQ1.jpg',
+                    title: '반딧불이의 묘',
+                    overview: '두 형제가 일본에서 제2차 세계 대전의 마지막 달을 살아남기 위해 고군분투하고 있습니다.',
+                    genre: ['드라마'],
+                    id: 12477,
+                },
+                {
+                    poster_path: '/8SRUfRUi6x4O68n0VCbDNRa6iGL.jpg',
+                    title: '시네마 천국',
+                    overview: '한 영화감독은 영화와 사랑에 빠졌던 어린 시절을 회상한다.',
+                    genre: ['드라마'],
+                    id: 11216,
+                },
+                {
+                    poster_path: '/8OKmBV5BUFzmozIC3pPWKHy17kx.jpg',
+                    title: '7인의 사무라이',
+                    overview: '사무라이는 어려움을 겪은 후 마을의 보호 요청에 응답합니다.',
+                    genre: ['드라마', '액션'],
+                    id: 346,
+                },
+                {
+                    poster_path: '/74hLDKjD5aGYOotO6esUVaeISa2.jpg',
+                    title: '인생은 아름다워',
+                    overview: '유대인 혈통의 이탈리아 서적 판매자는 자신만의 작은 동화 속에 살고 있습니다.',
+                    genre: ['드라마'],
+                    id: 637,
+                },
+            ];
+
+            document.getElementById('toggleDarkMode').addEventListener('click', function () {
+                document.body.classList.toggle('dark-mode');
+                var elements = document.querySelectorAll('.modal, .modal-content, .grid-image');
+                elements.forEach(function (elem) {
+                    elem.classList.toggle('dark-mode');
+                });
+            });
+            document.getElementById('genreSelect').addEventListener('change', function () {
+                const selectedGenre = this.value;
+                let filteredMovies = movies;
+                if (selectedGenre !== 'all') {
+                    filteredMovies = movies.filter((movie) => movie.genre === selectedGenre);
+                }
+                displayMovies(filteredMovies);
+            });
+
+            window.onload = function () {
+                document.getElementById('searchBox').focus();
+            };
+
+            const displayMovies = (moviesToDisplay) => {
+                const movieGrid = document.getElementById('movieGrid');
+                movieGrid.innerHTML = '';
+
+                moviesToDisplay.forEach((movie) => {
+                    const movieElement = document.createElement('div');
+                    movieElement.className = 'grid-image';
+                    movieElement.innerHTML = `
+                            <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" alt="${movie.title}">
+                            <div class="movie-title">${movie.title}</div>
+                            <div class="movie-overview">${movie.overview}</div>
+                        `;
+                    movieElement.onclick = () => {
+                        alert(
+                            '영화 제목: ' + movie.title + '\n장르: ' + movie.genre.join(', ') + '\n영화 ID: ' + movie.id
+                        );
+                    };
+                    movieGrid.appendChild(movieElement);
+                });
+            };
+
+            const searchMovies = () => {
+                const searchText = document.getElementById('searchBox').value.toLowerCase();
+                const genre = document.getElementById('genreSelect').value;
+                const filteredMovies = movies.filter(
+                    (movie) =>
+                        (movie.title.toLowerCase().includes(searchText) ||
+                            movie.overview.toLowerCase().includes(searchText)) &&
+                        (genre === 'all' || movie.genre.includes(genre))
+                );
+                displayMovies(filteredMovies);
+            };
+            document.getElementById('genreSelect').addEventListener('change', searchMovies);
+            document.getElementById('genreSelect').addEventListener('change', searchMovies);
+            document.getElementById('searchBox').addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    searchMovies();
+                }
+            });
+
+            displayMovies(movies);
+        </script>
+    </body>
+</html>
